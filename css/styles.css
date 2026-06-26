@@ -93,10 +93,26 @@ body {
     font-size: 24px;
 }
 
+.logo-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
 .logo h1 {
     font-size: 18px;
     font-weight: 600;
     letter-spacing: -0.02em;
+    line-height: 1.2;
+}
+
+.tagline {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--text-secondary);
+    margin: 0;
+    letter-spacing: 0;
+    line-height: 1.2;
 }
 
 .menu-toggle {
@@ -569,6 +585,10 @@ body {
         font-size: 16px;
     }
     
+    .tagline {
+        font-size: 11px;
+    }
+    
     .menu-toggle {
         display: block;
     }
@@ -623,6 +643,10 @@ body {
 
 @media (max-width: 480px) {
     .logo-icon {
+        display: none;
+    }
+    
+    .tagline {
         display: none;
     }
     
