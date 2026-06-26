@@ -1,1 +1,71 @@
-
+{
+  "sections": [
+    {
+      "id": "basics",
+      "title": "Основы выборки",
+      "level": "basic",
+      "description": "Базовые конструкции для получения данных из таблиц.",
+      "cards": [
+        {
+          "title": "SELECT и FROM",
+          "description": "Выборка столбцов из таблицы. Основа любого SQL-запроса.",
+          "syntax": "SELECT column1, column2, ...\nFROM table_name;",
+          "examples": [
+            {
+              "description": "Выбрать имя и email всех пользователей",
+              "code": "SELECT name, email\nFROM users;",
+              "tables": {
+                "before": {
+                  "columns": ["id", "name", "email", "created_at"],
+                  "rows": [
+                    [1, "Анна", "anna@mail.ru", "2024-01-10"],
+                    [2, "Борис", "boris@gmail.com", "2024-02-15"],
+                    [3, "Виктор", "victor@ya.ru", "2024-03-01"]
+                  ]
+                },
+                "after": {
+                  "columns": ["name", "email"],
+                  "rows": [
+                    ["Анна", "anna@mail.ru"],
+                    ["Борис", "boris@gmail.com"],
+                    ["Виктор", "victor@ya.ru"]
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "title": "DISTINCT",
+          "description": "Убирает дубликаты из результата.",
+          "syntax": "SELECT DISTINCT column_name\nFROM table_name;",
+          "examples": [
+            {
+              "description": "Уникальные города",
+              "code": "SELECT DISTINCT city\nFROM users;"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "filtering",
+      "title": "Фильтрация WHERE",
+      "level": "basic",
+      "description": "Условия для отбора строк.",
+      "cards": [
+        {
+          "title": "Операторы сравнения",
+          "description": "=, <>, !=, <, >, <=, >=",
+          "syntax": "SELECT *\nFROM table_name\nWHERE column = value;",
+          "examples": [
+            {
+              "description": "Заказы дороже 1000",
+              "code": "SELECT *\nFROM orders\nWHERE amount > 1000;"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
