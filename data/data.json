@@ -32,17 +32,54 @@
                   ]
                 }
               }
+            },
+            {
+              "description": "Выбрать все столбцы (используйте с осторожностью на больших таблицах)",
+              "code": "SELECT *\nFROM users;"
             }
           ]
         },
         {
           "title": "DISTINCT",
-          "description": "Убирает дубликаты из результата.",
+          "description": "Убирает дубликаты из результата. Полезно для получения списка уникальных значений.",
           "syntax": "SELECT DISTINCT column_name\nFROM table_name;",
           "examples": [
             {
-              "description": "Уникальные города",
-              "code": "SELECT DISTINCT city\nFROM users;"
+              "description": "Получить список уникальных городов пользователей",
+              "code": "SELECT DISTINCT city\nFROM users;",
+              "tables": {
+                "before": {
+                  "columns": ["name", "city"],
+                  "rows": [
+                    ["Анна", "Москва"],
+                    ["Борис", "СПб"],
+                    ["Виктор", "Москва"],
+                    ["Галина", "СПб"]
+                  ]
+                },
+                "after": {
+                  "columns": ["city"],
+                  "rows": [
+                    ["Москва"],
+                    ["СПб"]
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "title": "LIMIT и OFFSET",
+          "description": "Ограничение количества строк в результате. OFFSET — пропуск первых N строк. Часто используется для пагинации.",
+          "syntax": "SELECT column_name\nFROM table_name\nLIMIT n\nOFFSET m;",
+          "examples": [
+            {
+              "description": "Первые 5 заказов",
+              "code": "SELECT *\nFROM orders\nLIMIT 5;"
+            },
+            {
+              "description": "Вторая страница (пропустить 10, взять 10)",
+              "code": "SELECT *\nFROM orders\nLIMIT 10 OFFSET 10;"
             }
           ]
         }
@@ -52,16 +89,708 @@
       "id": "filtering",
       "title": "Фильтрация WHERE",
       "level": "basic",
-      "description": "Условия для отбора строк.",
+      "description": "Условия для отбора строк. WHERE работает до агрегации.",
       "cards": [
         {
           "title": "Операторы сравнения",
-          "description": "=, <>, !=, <, >, <=, >=",
+          "description": "=, <>, !=, <, >, <=, >=. Сравнивают значения в столбцах.",
           "syntax": "SELECT *\nFROM table_name\nWHERE column = value;",
           "examples": [
             {
               "description": "Заказы дороже 1000",
               "code": "SELECT *\nFROM orders\nWHERE amount > 1000;"
+            },
+            {
+              "description": "Пользователи не из России",
+              "code": "SELECT *\nFROM users\nWHERE country <> 'Russia';"
+            }
+          ]
+        },
+        {
+          "title": "AND, OR, NOT",
+          "description": "Комбинирование нескольких условий.",
+          "syntax": "SELECT *\nFROM table_name\nWHERE condition1 AND condition2;\n\nSELECT *\nFROM table_name\nWHERE condition1 OR condition2;",
+          "examples": [
+            {
+              "description": "Активные пользователи из Москвы",
+              "code": "SELECT *\nFROM users\nWHERE city = 'Москва' AND is_active = true;"
+            },
+            {
+              "description": "Заказы со скидкой или от VIP-клиентов",
+              "code": "SELECT *\nFROM orders\nWHERE discount > 0 OR customer_type = 'VIP';"
+            }
+          ]
+        },
+        {
+          "title": "IN",
+          "description": "Проверка вхождения в список значений. Альтернатива множественным OR.",
+          "syntax": "SELECT *\nFROM table_name\nWHERE column IN (value1, value2, ...);",
+          "examples": [
+            {
+              "description": "Заказы в определённых статусах",
+              "code": "SELECT *\nFROM orders\nWHERE status IN ('pending', 'shipped', 'delivered');"
+            }
+          ]
+        },
+        {
+          "title": "BETWEEN",
+          "description": "Диапазон значений, включая границы. Работает с числами, датами, строками.",
+          "syntax": "SELECT *\nFROM table_name\nWHERE column BETWEEN value1 AND value2;",
+          "examples": [
+            {
+              "description": "Заказы за март 2024",
+              "code": "SELECT *\nFROM orders\nWHERE created_at BETWEEN '2024-03-01' AND '2024-03-31';"
+            },
+            {
+              "description": "Сумма чека от 500 до 2000",
+              "code": "SELECT *\nFROM orders\nWHERE amount BETWEEN 500 AND 2000;"
+            }
+          ]
+        },
+        {
+          "title": "LIKE — поиск по шаблону",
+          "description": "% — любое количество символов, _ — ровно один символ. ILIKE — регистронезависимый вариант (PostgreSQL).",
+          "syntax": "SELECT *\nFROM table_name\nWHERE column LIKE 'pattern%';",
+          "examples": [
+            {
+              "description": "Email на gmail.com",
+              "code": "SELECT *\nFROM users\nWHERE email LIKE '%@gmail.com';"
+            },
+            {
+              "description": "Имена, начинающиеся на 'А' (без учёта регистра)",
+              "code": "SELECT *\nFROM users\nWHERE name ILIKE 'а%';"
+            }
+          ]
+        },
+        {
+          "title": "IS NULL / IS NOT NULL",
+          "description": "Проверка на NULL. Внимание: NULL нельзя сравнивать через = или <>.",
+          "syntax": "SELECT *\nFROM table_name\nWHERE column IS NULL;\n\nSELECT *\nFROM table_name\nWHERE column IS NOT NULL;",
+          "examples": [
+            {
+              "description": "Пользователи без указанного города",
+              "code": "SELECT *\nFROM users\nWHERE city IS NULL;",
+              "tables": {
+                "before": {
+                  "columns": ["name", "city"],
+                  "rows": [
+                    ["Анна", "Москва"],
+                    ["Борис", null],
+                    ["Виктор", null],
+                    ["Галина", "СПб"]
+                  ]
+                },
+                "after": {
+                  "columns": ["name", "city"],
+                  "rows": [
+                    ["Борис", null],
+                    ["Виктор", null]
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sorting",
+      "title": "Сортировка",
+      "level": "basic",
+      "description": "Управление порядком строк в результате.",
+      "cards": [
+        {
+          "title": "ORDER BY",
+          "description": "Сортировка по одному или нескольким столбцам. ASC — по возрастанию (по умолчанию), DESC — по убыванию.",
+          "syntax": "SELECT *\nFROM table_name\nORDER BY column1 ASC, column2 DESC;",
+          "examples": [
+            {
+              "description": "10 самых дорогих заказов",
+              "code": "SELECT *\nFROM orders\nORDER BY amount DESC\nLIMIT 10;"
+            },
+            {
+              "description": "По дате (новые сначала), затем по сумме",
+              "code": "SELECT *\nFROM orders\nORDER BY created_at DESC, amount DESC;"
+            },
+            {
+              "description": "Сортировка с NULL в конце (PostgreSQL)",
+              "code": "SELECT *\nFROM users\nORDER BY last_login DESC NULLS LAST;"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "aggregation",
+      "title": "Агрегация",
+      "level": "basic",
+      "description": "Подсчёт суммарных показателей: количество, сумма, среднее и группировка.",
+      "cards": [
+        {
+          "title": "Агрегатные функции",
+          "description": "COUNT, SUM, AVG, MIN, MAX. Работают по набору строк и возвращают одно значение.",
+          "syntax": "SELECT \n    COUNT(*) AS total,\n    SUM(amount) AS revenue,\n    AVG(amount) AS avg_check,\n    MIN(amount) AS min_amount,\n    MAX(amount) AS max_amount\nFROM orders;",
+          "examples": [
+            {
+              "description": "Сколько всего заказов и общая выручка",
+              "code": "SELECT \n    COUNT(*) AS orders_count,\n    SUM(amount) AS total_revenue\nFROM orders;"
+            },
+            {
+              "description": "COUNT(*) vs COUNT(column) — второе не считает NULL",
+              "code": "SELECT \n    COUNT(*) AS all_users,\n    COUNT(phone) AS with_phone\nFROM users;"
+            },
+            {
+              "description": "Количество уникальных покупателей",
+              "code": "SELECT COUNT(DISTINCT user_id) AS unique_buyers\nFROM orders;"
+            }
+          ]
+        },
+        {
+          "title": "GROUP BY",
+          "description": "Группирует строки по значениям столбцов. В SELECT могут быть только столбцы из GROUP BY и агрегаты.",
+          "syntax": "SELECT \n    column1,\n    COUNT(*) AS cnt,\n    SUM(column2) AS total\nFROM table_name\nGROUP BY column1;",
+          "examples": [
+            {
+              "description": "Количество заказов и выручка по каждому пользователю",
+              "code": "SELECT \n    user_id,\n    COUNT(*) AS orders_count,\n    SUM(amount) AS total_spent\nFROM orders\nGROUP BY user_id;",
+              "tables": {
+                "before": {
+                  "columns": ["user_id", "amount"],
+                  "rows": [
+                    [1, 1500],
+                    [2, 800],
+                    [1, 2200],
+                    [3, 500],
+                    [2, 1100]
+                  ]
+                },
+                "after": {
+                  "columns": ["user_id", "orders_count", "total_spent"],
+                  "rows": [
+                    [1, 2, 3700],
+                    [2, 2, 1900],
+                    [3, 1, 500]
+                  ]
+                }
+              }
+            },
+            {
+              "description": "Группировка по нескольким столбцам",
+              "code": "SELECT \n    country,\n    city,\n    COUNT(*) AS users\nFROM users\nGROUP BY country, city;"
+            }
+          ]
+        },
+        {
+          "title": "HAVING",
+          "description": "Фильтрация по результатам агрегации (аналог WHERE, но после GROUP BY).",
+          "syntax": "SELECT column, COUNT(*)\nFROM table_name\nGROUP BY column\nHAVING COUNT(*) > n;",
+          "examples": [
+            {
+              "description": "Пользователи, сделавшие больше 5 заказов",
+              "code": "SELECT \n    user_id,\n    COUNT(*) AS orders_count\nFROM orders\nGROUP BY user_id\nHAVING COUNT(*) > 5;"
+            },
+            {
+              "description": "Категории со средней ценой выше 1000",
+              "code": "SELECT \n    category,\n    AVG(price) AS avg_price\nFROM products\nGROUP BY category\nHAVING AVG(price) > 1000;"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "joins",
+      "title": "Объединение таблиц (JOIN)",
+      "level": "intermediate",
+      "description": "Соединение данных из нескольких таблиц по ключу.",
+      "cards": [
+        {
+          "title": "INNER JOIN",
+          "description": "Возвращает только те строки, для которых есть совпадения в обеих таблицах.",
+          "syntax": "SELECT t1.col, t2.col\nFROM table1 t1\nINNER JOIN table2 t2 \n    ON t1.id = t2.table1_id;",
+          "examples": [
+            {
+              "description": "Заказы с именами пользователей",
+              "code": "SELECT \n    o.id AS order_id,\n    u.name,\n    o.amount\nFROM orders o\nINNER JOIN users u ON o.user_id = u.id;"
+            }
+          ]
+        },
+        {
+          "title": "LEFT JOIN",
+          "description": "Все строки из левой таблицы + совпадения из правой. Если совпадения нет — NULL.",
+          "syntax": "SELECT t1.col, t2.col\nFROM table1 t1\nLEFT JOIN table2 t2 \n    ON t1.id = t2.table1_id;",
+          "examples": [
+            {
+              "description": "Все пользователи и их заказы (если есть). Покажет и тех, кто не заказывал.",
+              "code": "SELECT \n    u.name,\n    COUNT(o.id) AS orders_count\nFROM users u\nLEFT JOIN orders o ON u.id = o.user_id\nGROUP BY u.name;"
+            }
+          ]
+        },
+        {
+          "title": "RIGHT JOIN и FULL JOIN",
+          "description": "RIGHT JOIN — все строки из правой таблицы. FULL JOIN — все строки из обеих таблиц.",
+          "syntax": "SELECT t1.col, t2.col\nFROM table1 t1\nFULL OUTER JOIN table2 t2 \n    ON t1.id = t2.table1_id;",
+          "examples": [
+            {
+              "description": "Все пользователи и все заказы, даже без привязки",
+              "code": "SELECT \n    u.name,\n    o.id AS order_id\nFROM users u\nFULL OUTER JOIN orders o ON u.id = o.user_id;"
+            }
+          ]
+        },
+        {
+          "title": "Несколько JOIN",
+          "description": "Можно соединять более двух таблиц подряд.",
+          "syntax": "SELECT ...\nFROM table1 t1\nJOIN table2 t2 ON t1.id = t2.t1_id\nJOIN table3 t3 ON t2.id = t3.t2_id;",
+          "examples": [
+            {
+              "description": "Заказ + пользователь + категория товара",
+              "code": "SELECT \n    o.id AS order_id,\n    u.name AS user_name,\n    p.name AS product_name,\n    c.name AS category\nFROM orders o\nJOIN users u ON o.user_id = u.id\nJOIN products p ON o.product_id = p.id\nJOIN categories c ON p.category_id = c.id;"
+            }
+          ]
+        },
+        {
+          "title": "CROSS JOIN",
+          "description": "Декартово произведение — каждая строка с каждой. Осторожно: на больших таблицах результат огромен.",
+          "syntax": "SELECT t1.col, t2.col\nFROM table1 t1\nCROSS JOIN table2 t2;",
+          "examples": [
+            {
+              "description": "Все комбинации размеров и цветов (для генерации SKU)",
+              "code": "SELECT \n    s.size,\n    c.color\nFROM sizes s\nCROSS JOIN colors c;"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "conditions",
+      "title": "Условия в запросах",
+      "level": "intermediate",
+      "description": "Ветвление логики и работа с NULL внутри SELECT.",
+      "cards": [
+        {
+          "title": "CASE WHEN",
+          "description": "Условное выражение внутри запроса. Аналог if/else.",
+          "syntax": "SELECT \n    column,\n    CASE \n        WHEN condition1 THEN result1\n        WHEN condition2 THEN result2\n        ELSE default_result\n    END AS new_column\nFROM table_name;",
+          "examples": [
+            {
+              "description": "Сегментация пользователей по сумме покупок",
+              "code": "SELECT \n    user_id,\n    total_spent,\n    CASE \n        WHEN total_spent > 100000 THEN 'VIP'\n        WHEN total_spent > 10000 THEN 'Regular'\n        ELSE 'New'\n    END AS segment\nFROM user_stats;"
+            },
+            {
+              "description": "Простой CASE — сравнение с конкретными значениями",
+              "code": "SELECT \n    order_id,\n    status,\n    CASE status\n        WHEN 'paid' THEN 'Оплачен'\n        WHEN 'shipped' THEN 'В пути'\n        WHEN 'delivered' THEN 'Доставлен'\n        ELSE 'Другое'\n    END AS status_ru\nFROM orders;"
+            }
+          ]
+        },
+        {
+          "title": "COALESCE",
+          "description": "Возвращает первое непустое значение из списка. Удобно для замены NULL на дефолт.",
+          "syntax": "SELECT COALESCE(column, 'default_value')\nFROM table_name;",
+          "examples": [
+            {
+              "description": "Если город не указан — поставить 'Неизвестно'",
+              "code": "SELECT \n    name,\n    COALESCE(city, 'Неизвестно') AS city\nFROM users;"
+            },
+            {
+              "description": "Первый доступный контакт: телефон, email, или 'нет контактов'",
+              "code": "SELECT \n    name,\n    COALESCE(phone, email, 'нет контактов') AS contact\nFROM users;"
+            }
+          ]
+        },
+        {
+          "title": "NULLIF",
+          "description": "Возвращает NULL, если два значения равны. Полезно для защиты от деления на ноль.",
+          "syntax": "SELECT NULLIF(value1, value2);",
+          "examples": [
+            {
+              "description": "Конверсия: лиды / заказы (без падения при 0 заказов)",
+              "code": "SELECT \n    campaign,\n    leads,\n    orders,\n    ROUND(orders::numeric / NULLIF(leads, 0), 2) AS conversion\nFROM campaigns;"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "subqueries",
+      "title": "Подзапросы",
+      "level": "intermediate",
+      "description": "Запрос внутри другого запроса.",
+      "cards": [
+        {
+          "title": "Подзапрос в WHERE",
+          "description": "Фильтрация по результату другого запроса.",
+          "syntax": "SELECT *\nFROM table_name\nWHERE column IN (\n    SELECT column FROM other_table\n);",
+          "examples": [
+            {
+              "description": "Пользователи, которые сделали хотя бы один заказ",
+              "code": "SELECT *\nFROM users\nWHERE id IN (\n    SELECT DISTINCT user_id FROM orders\n);"
+            },
+            {
+              "description": "Заказы выше среднего чека",
+              "code": "SELECT *\nFROM orders\nWHERE amount > (\n    SELECT AVG(amount) FROM orders\n);"
+            }
+          ]
+        },
+        {
+          "title": "Подзапрос в FROM",
+          "description": "Использование результата как таблицы (обязателен алиас).",
+          "syntax": "SELECT t.col\nFROM (\n    SELECT ... FROM ...\n) t;",
+          "examples": [
+            {
+              "description": "Среднее по дневным выручкам",
+              "code": "SELECT AVG(daily_revenue) AS avg_daily\nFROM (\n    SELECT \n        DATE(created_at) AS day,\n        SUM(amount) AS daily_revenue\n    FROM orders\n    GROUP BY DATE(created_at)\n) daily;"
+            }
+          ]
+        },
+        {
+          "title": "Подзапрос в SELECT",
+          "description": "Скалярный подзапрос — возвращает одно значение.",
+          "syntax": "SELECT \n    column,\n    (SELECT ... FROM ...) AS sub_value\nFROM table_name;",
+          "examples": [
+            {
+              "description": "Доля каждого заказа от общей выручки",
+              "code": "SELECT \n    id,\n    amount,\n    ROUND(\n        amount::numeric / (SELECT SUM(amount) FROM orders) * 100, \n        2\n    ) AS share_pct\nFROM orders;"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cte",
+      "title": "CTE (WITH)",
+      "level": "intermediate",
+      "description": "Common Table Expressions — именованные подзапросы для читаемости.",
+      "cards": [
+        {
+          "title": "Простой CTE",
+          "description": "Альтернатива подзапросу в FROM. Читается гораздо легче.",
+          "syntax": "WITH cte_name AS (\n    SELECT ...\n)\nSELECT * FROM cte_name;",
+          "examples": [
+            {
+              "description": "Топ-10 пользователей по тратам и их последний заказ",
+              "code": "WITH user_stats AS (\n    SELECT \n        user_id,\n        COUNT(*) AS orders_count,\n        SUM(amount) AS total\n    FROM orders\n    GROUP BY user_id\n)\nSELECT *\nFROM user_stats\nORDER BY total DESC\nLIMIT 10;"
+            }
+          ]
+        },
+        {
+          "title": "Несколько CTE",
+          "description": "Можно объявлять несколько CTE через запятую. Каждый следующий может использовать предыдущие.",
+          "syntax": "WITH \n    cte1 AS (SELECT ...),\n    cte2 AS (SELECT ... FROM cte1)\nSELECT * FROM cte2;",
+          "examples": [
+            {
+              "description": "Конверсия по воронке: регистрации → первые заказы → повторные",
+              "code": "WITH registered AS (\n    SELECT user_id, created_at AS reg_date\n    FROM users\n),\nfirst_orders AS (\n    SELECT user_id, MIN(created_at) AS first_order\n    FROM orders\n    GROUP BY user_id\n),\nrepeat_orders AS (\n    SELECT user_id, COUNT(*) AS repeat_cnt\n    FROM orders\n    GROUP BY user_id\n    HAVING COUNT(*) > 1\n)\nSELECT \n    COUNT(DISTINCT r.user_id) AS registered,\n    COUNT(DISTINCT f.user_id) AS with_first_order,\n    COUNT(DISTINCT rp.user_id) AS repeat_buyers\nFROM registered r\nLEFT JOIN first_orders f ON r.user_id = f.user_id\nLEFT JOIN repeat_orders rp ON r.user_id = rp.user_id;"
+            }
+          ]
+        },
+        {
+          "title": "Рекурсивный CTE",
+          "description": "Для обхода иерархических данных (дерево категорий, оргструктура).",
+          "syntax": "WITH RECURSIVE cte_name AS (\n    -- базовый случай\n    SELECT ... WHERE parent_id IS NULL\n    UNION ALL\n    -- рекурсивный шаг\n    SELECT ... FROM cte_name c JOIN table t ON ...\n)\nSELECT * FROM cte_name;",
+          "examples": [
+            {
+              "description": "Все подкатегории для заданной родительской",
+              "code": "WITH RECURSIVE subcats AS (\n    SELECT id, name, parent_id, 1 AS level\n    FROM categories\n    WHERE id = 1\n    \n    UNION ALL\n    \n    SELECT c.id, c.name, c.parent_id, s.level + 1\n    FROM categories c\n    INNER JOIN subcats s ON c.parent_id = s.id\n)\nSELECT * FROM subcats;"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "set-operations",
+      "title": "Объединение результатов",
+      "level": "intermediate",
+      "description": "Комбинирование результатов нескольких SELECT в один набор строк.",
+      "cards": [
+        {
+          "title": "UNION и UNION ALL",
+          "description": "UNION убирает дубликаты (медленнее), UNION ALL — оставляет все строки.",
+          "syntax": "SELECT col FROM table1\nUNION ALL\nSELECT col FROM table2;",
+          "examples": [
+            {
+              "description": "Объединить логи действий из двух таблиц",
+              "code": "SELECT user_id, 'purchase' AS action, created_at FROM orders\nUNION ALL\nSELECT user_id, 'signup' AS action, created_at FROM users;"
+            }
+          ]
+        },
+        {
+          "title": "INTERSECT",
+          "description": "Строки, присутствующие в обоих результатах.",
+          "syntax": "SELECT col FROM table1\nINTERSECT\nSELECT col FROM table2;",
+          "examples": [
+            {
+              "description": "Пользователи, которые покупали и в январе, и в феврале",
+              "code": "SELECT user_id FROM orders WHERE created_at >= '2024-01-01' AND created_at < '2024-02-01'\nINTERSECT\nSELECT user_id FROM orders WHERE created_at >= '2024-02-01' AND created_at < '2024-03-01';"
+            }
+          ]
+        },
+        {
+          "title": "EXCEPT",
+          "description": "Строки из первого запроса, которых нет во втором.",
+          "syntax": "SELECT col FROM table1\nEXCEPT\nSELECT col FROM table2;",
+          "examples": [
+            {
+              "description": "Зарегистрированные, но ни разу не купившие",
+              "code": "SELECT id FROM users\nEXCEPT\nSELECT user_id FROM orders;"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "window-functions",
+      "title": "Оконные функции",
+      "level": "advanced",
+      "description": "Вычисления по «окну» строк без группировки. Строки не слипаются — результат возвращается для каждой строки.",
+      "cards": [
+        {
+          "title": "Основы: OVER()",
+          "description": "Синтаксис оконных функций. PARTITION BY — разбивка на группы, ORDER BY — порядок внутри группы.",
+          "syntax": "function() OVER (\n    PARTITION BY column1\n    ORDER BY column2\n)",
+          "examples": [
+            {
+              "description": "Общая выручка как отдельный столбец у каждой строки",
+              "code": "SELECT \n    id,\n    amount,\n    SUM(amount) OVER () AS total_revenue\nFROM orders;"
+            },
+            {
+              "description": "Доля заказа в рамках своей категории",
+              "code": "SELECT \n    category,\n    amount,\n    ROUND(\n        amount::numeric / SUM(amount) OVER (PARTITION BY category) * 100,\n        2\n    ) AS share_pct\nFROM orders;"
+            }
+          ]
+        },
+        {
+          "title": "Нумерация: ROW_NUMBER, RANK, DENSE_RANK",
+          "description": "ROW_NUMBER — уникальная нумерация. RANK — с пропусками при равенстве. DENSE_RANK — без пропусков.",
+          "syntax": "ROW_NUMBER() OVER (ORDER BY col DESC)\nRANK() OVER (ORDER BY col DESC)\nDENSE_RANK() OVER (ORDER BY col DESC)",
+          "examples": [
+            {
+              "description": "Топ-3 заказа каждого пользователя по сумме",
+              "code": "WITH ranked AS (\n    SELECT \n        user_id,\n        id AS order_id,\n        amount,\n        ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY amount DESC) AS rn\n    FROM orders\n)\nSELECT * FROM ranked WHERE rn <= 3;"
+            },
+            {
+              "description": "Разница ROW_NUMBER / RANK / DENSE_RANK",
+              "code": "SELECT \n    name,\n    score,\n    ROW_NUMBER() OVER (ORDER BY score DESC) AS row_num,\n    RANK() OVER (ORDER BY score DESC) AS rank,\n    DENSE_RANK() OVER (ORDER BY score DESC) AS dense_rank\nFROM students;",
+              "tables": {
+                "before": {
+                  "columns": ["name", "score"],
+                  "rows": [
+                    ["Анна", 95],
+                    ["Борис", 90],
+                    ["Виктор", 90],
+                    ["Галина", 85]
+                  ]
+                },
+                "after": {
+                  "columns": ["name", "score", "row_num", "rank", "dense_rank"],
+                  "rows": [
+                    ["Анна", 95, 1, 1, 1],
+                    ["Борис", 90, 2, 2, 2],
+                    ["Виктор", 90, 3, 2, 2],
+                    ["Галина", 85, 4, 4, 3]
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "title": "LAG и LEAD",
+          "description": "Значение из предыдущей (LAG) или следующей (LEAD) строки в окне.",
+          "syntax": "LAG(column, offset, default) OVER (ORDER BY col)\nLEAD(column, offset, default) OVER (ORDER BY col)",
+          "examples": [
+            {
+              "description": "Рост выручки день-ко-дню",
+              "code": "WITH daily AS (\n    SELECT \n        DATE(created_at) AS day,\n        SUM(amount) AS revenue\n    FROM orders\n    GROUP BY DATE(created_at)\n)\nSELECT \n    day,\n    revenue,\n    LAG(revenue) OVER (ORDER BY day) AS prev_day,\n    revenue - LAG(revenue) OVER (ORDER BY day) AS growth\nFROM daily;"
+            },
+            {
+              "description": "Время между заказами пользователя",
+              "code": "SELECT \n    user_id,\n    created_at,\n    created_at - LAG(created_at) OVER (\n        PARTITION BY user_id ORDER BY created_at\n    ) AS days_since_prev\nFROM orders;"
+            }
+          ]
+        },
+        {
+          "title": "Скользящие агрегаты",
+          "description": "Сумма/среднее за последние N строк с помощью ROWS BETWEEN.",
+          "syntax": "SUM(col) OVER (\n    ORDER BY date\n    ROWS BETWEEN 6 PRECEDING AND CURRENT ROW\n)",
+          "examples": [
+            {
+              "description": "Скользящее среднее за 7 дней (MA7)",
+              "code": "WITH daily AS (\n    SELECT \n        DATE(created_at) AS day,\n        SUM(amount) AS revenue\n    FROM orders\n    GROUP BY DATE(created_at)\n)\nSELECT \n    day,\n    revenue,\n    ROUND(AVG(revenue) OVER (\n        ORDER BY day\n        ROWS BETWEEN 6 PRECEDING AND CURRENT ROW\n    ), 2) AS ma7\nFROM daily;"
+            },
+            {
+              "description": "Накопительный итог с начала месяца",
+              "code": "SELECT \n    DATE(created_at) AS day,\n    SUM(amount) AS daily,\n    SUM(SUM(amount)) OVER (\n        PARTITION BY DATE_TRUNC('month', created_at)\n        ORDER BY DATE(created_at)\n    ) AS mtd_cumulative\nFROM orders\nGROUP BY DATE(created_at), DATE_TRUNC('month', created_at);"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dates",
+      "title": "Работа с датами",
+      "level": "intermediate",
+      "description": "Синтаксис PostgreSQL. В других СУБД (MySQL, ClickHouse) функции отличаются.",
+      "cards": [
+        {
+          "title": "Текущая дата и время",
+          "description": "CURRENT_DATE, CURRENT_TIME, CURRENT_TIMESTAMP, NOW().",
+          "syntax": "SELECT \n    CURRENT_DATE,\n    CURRENT_TIMESTAMP,\n    NOW();",
+          "examples": [
+            {
+              "description": "Заказы за последние 7 дней",
+              "code": "SELECT *\nFROM orders\nWHERE created_at >= CURRENT_DATE - INTERVAL '7 days';"
+            }
+          ]
+        },
+        {
+          "title": "EXTRACT — извлечение части даты",
+          "description": "Получить год, месяц, день, день недели и т.д.",
+          "syntax": "EXTRACT(field FROM timestamp)\n-- field: year, month, day, hour, minute, dow, doy, week",
+          "examples": [
+            {
+              "description": "Выручка по месяцам",
+              "code": "SELECT \n    EXTRACT(YEAR FROM created_at) AS year,\n    EXTRACT(MONTH FROM created_at) AS month,\n    SUM(amount) AS revenue\nFROM orders\nGROUP BY 1, 2\nORDER BY 1, 2;"
+            },
+            {
+              "description": "Распределение заказов по дням недели (0=воскресенье)",
+              "code": "SELECT \n    EXTRACT(DOW FROM created_at) AS dow,\n    COUNT(*) AS orders\nFROM orders\nGROUP BY 1;"
+            }
+          ]
+        },
+        {
+          "title": "DATE_TRUNC — округление до периода",
+          "description": "Округляет дату до начала года/месяца/недели/дня. Удобно для группировки.",
+          "syntax": "DATE_TRUNC('period', timestamp)\n-- period: year, quarter, month, week, day, hour, minute",
+          "examples": [
+            {
+              "description": "Выручка по неделям (с понедельника)",
+              "code": "SELECT \n    DATE_TRUNC('week', created_at) AS week_start,\n    SUM(amount) AS revenue\nFROM orders\nGROUP BY 1\nORDER BY 1;"
+            },
+            {
+              "description": "Когортный анализ по месяцу регистрации",
+              "code": "SELECT \n    DATE_TRUNC('month', created_at) AS cohort,\n    COUNT(*) AS users\nFROM users\nGROUP BY 1;"
+            }
+          ]
+        },
+        {
+          "title": "INTERVAL — интервалы времени",
+          "description": "Добавление/вычитание периодов из дат.",
+          "syntax": "date_column + INTERVAL '1 day'\ndate_column - INTERVAL '3 months'",
+          "examples": [
+            {
+              "description": "Активные пользователи за последние 30 дней",
+              "code": "SELECT DISTINCT user_id\nFROM activity\nWHERE event_time >= CURRENT_TIMESTAMP - INTERVAL '30 days';"
+            },
+            {
+              "description": "Retention: вернулся ли пользователь в течение 7 дней после регистрации",
+              "code": "SELECT \n    u.id AS user_id,\n    u.created_at AS reg_date,\n    CASE WHEN a.user_id IS NOT NULL THEN true ELSE false END AS retained_d7\nFROM users u\nLEFT JOIN (\n    SELECT DISTINCT user_id\n    FROM activity\n) a ON u.id = a.user_id \n    AND a.event_time BETWEEN u.created_at AND u.created_at + INTERVAL '7 days';"
+            }
+          ]
+        },
+        {
+          "title": "Форматирование дат",
+          "description": "TO_CHAR — преобразование даты в строку по формату.",
+          "syntax": "TO_CHAR(date, 'format')\n-- форматы: YYYY, MM, DD, HH24, MI, SS, Mon, Day",
+          "examples": [
+            {
+              "description": "Красивый вывод даты",
+              "code": "SELECT \n    created_at,\n    TO_CHAR(created_at, 'DD.MM.YYYY') AS ru_date,\n    TO_CHAR(created_at, 'YYYY-MM-DD HH24:MI') AS iso\nFROM orders;"
+            },
+            {
+              "description": "Обратное: строка → дата через TO_DATE или ::date",
+              "code": "SELECT \n    TO_DATE('15.03.2024', 'DD.MM.YYYY') AS d1,\n    '2024-03-15'::date AS d2;"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "strings",
+      "title": "Строковые функции",
+      "level": "basic",
+      "description": "Основные операции со строками в PostgreSQL.",
+      "cards": [
+        {
+          "title": "CONCAT и склейка",
+          "description": "CONCAT объединяет строки (игнорирует NULL). || — оператор склейки (NULL заразителен).",
+          "syntax": "CONCAT(str1, str2, ...)\nCONCAT_WS(separator, str1, str2, ...)\nstr1 || str2",
+          "examples": [
+            {
+              "description": "Полное имя из частей",
+              "code": "SELECT \n    CONCAT(first_name, ' ', last_name) AS full_name\nFROM users;"
+            },
+            {
+              "description": "CONCAT_WS — с разделителем, пропуская NULL",
+              "code": "SELECT \n    CONCAT_WS(', ', city, country) AS location\nFROM users;"
+            }
+          ]
+        },
+        {
+          "title": "Регистр: LOWER, UPPER, INITCAP",
+          "description": "Приведение к нижнему, верхнему регистру, или первая буква каждого слова заглавная.",
+          "syntax": "LOWER(string)\nUPPER(string)\nINITCAP(string)",
+          "examples": [
+            {
+              "description": "Нормализация email",
+              "code": "SELECT \n    email,\n    LOWER(TRIM(email)) AS clean_email\nFROM users;"
+            }
+          ]
+        },
+        {
+          "title": "SUBSTRING и LEFT/RIGHT",
+          "description": "Извлечение части строки. Нумерация с 1 (не с 0).",
+          "syntax": "SUBSTRING(string FROM start FOR length)\nLEFT(string, n)\nRIGHT(string, n)",
+          "examples": [
+            {
+              "description": "Первые 3 символа почтового индекса",
+              "code": "SELECT \n    zip,\n    LEFT(zip, 3) AS zip_region\nFROM users;"
+            },
+            {
+              "description": "Домен из email",
+              "code": "SELECT \n    email,\n    SUBSTRING(email FROM POSITION('@' IN email) + 1) AS domain\nFROM users;"
+            }
+          ]
+        },
+        {
+          "title": "LENGTH и TRIM",
+          "description": "LENGTH — длина строки в символах. TRIM — обрезка пробелов слева/справа.",
+          "syntax": "LENGTH(string)\nTRIM([LEADING|TRAILING|BOTH] [chars] FROM string)",
+          "examples": [
+            {
+              "description": "Очистка и проверка длины имени",
+              "code": "SELECT \n    name,\n    TRIM(name) AS clean_name,\n    LENGTH(TRIM(name)) AS len\nFROM users\nWHERE LENGTH(TRIM(name)) < 2;"
+            }
+          ]
+        },
+        {
+          "title": "REPLACE",
+          "description": "Замена подстроки.",
+          "syntax": "REPLACE(string, from_text, to_text)",
+          "examples": [
+            {
+              "description": "Нормализация телефонных номеров",
+              "code": "SELECT \n    phone,\n    REPLACE(REPLACE(phone, ' ', ''), '-', '') AS clean_phone\nFROM users;"
+            }
+          ]
+        },
+        {
+          "title": "SPLIT_PART",
+          "description": "Разбиение строки по разделителю и выбор N-й части (PostgreSQL).",
+          "syntax": "SPLIT_PART(string, delimiter, n)",
+          "examples": [
+            {
+              "description": "Домен и логин из email",
+              "code": "SELECT \n    email,\n    SPLIT_PART(email, '@', 1) AS login,\n    SPLIT_PART(email, '@', 2) AS domain\nFROM users;"
+            }
+          ]
+        },
+        {
+          "title": "POSITION и STRPOS",
+          "description": "Позиция первого вхождения подстроки (0 если не найдена).",
+          "syntax": "POSITION(substring IN string)\nSTRPOS(string, substring)",
+          "examples": [
+            {
+              "description": "Найти UTM-метку в URL",
+              "code": "SELECT \n    url,\n    CASE \n        WHEN POSITION('utm_source' IN url) > 0 THEN 'with_utm'\n        ELSE 'organic'\n    END AS source_type\nFROM page_views;"
             }
           ]
         }
