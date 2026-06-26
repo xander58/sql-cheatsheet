@@ -1,1 +1,85 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Шпаргалка — PostgreSQL для аналитиков</title>
+    <meta name="description" content="Интерактивная шпаргалка по SQL (PostgreSQL) для продуктовых аналитиков и менеджеров. Синтаксис, примеры, копирование в один клик.">
+    
+    <!-- Шрифты -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Prism.js для подсветки SQL -->
+    <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    
+    <link rel="stylesheet" href="css/styles.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
+</head>
+<body>
+    <!-- Шапка -->
+    <header class="header">
+        <div class="header-container">
+            <div class="header-left">
+                <button class="menu-toggle" id="menuToggle" aria-label="Открыть меню">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+                <div class="logo">
+                    <span class="logo-icon">📊</span>
+                    <h1>SQL Шпаргалка</h1>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="search-box">
+                    <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                    <input type="text" id="searchInput" placeholder="Поиск по шпаргалке..." aria-label="Поиск">
+                </div>
+                <select id="levelFilter" class="level-filter" aria-label="Фильтр по уровню">
+                    <option value="all">Все уровни</option>
+                    <option value="basic">Базовый</option>
+                    <option value="intermediate">Средний</option>
+                    <option value="advanced">Продвинутый</option>
+                </select>
+            </div>
+        </div>
+    </header>
 
+    <!-- Основной контент -->
+    <div class="main-layout">
+        <!-- Сайдбар -->
+        <aside class="sidebar" id="sidebar">
+            <nav class="sidebar-nav">
+                <div class="sidebar-header">Разделы</div>
+                <ul id="navList"></ul>
+            </nav>
+        </aside>
+
+        <!-- Контент -->
+        <main class="content" id="content">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Загружаем шпаргалку...</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- Оверлей для мобильного меню -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Prism.js -->
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-sql.min.js"></script>
+    
+    <script src="js/app.js"></script>
+</body>
+</html>
