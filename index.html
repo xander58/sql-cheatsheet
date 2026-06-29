@@ -16,8 +16,8 @@
     
     <link rel="stylesheet" href="css/styles.css">
     
-    <!-- Favicon -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
+    <!-- Favicon с логотипом -->
+    <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
 </head>
 <body>
     <!-- Шапка -->
@@ -32,9 +32,9 @@
                     </svg>
                 </button>
                 <div class="logo">
-                    <span class="logo-icon">📊</span>
+                    <img src="assets/logo.svg" alt="SQL" class="logo-icon">
                     <div class="logo-text">
-                        <h1>SQL GURU</h1>
+                        <h1>SQL Шпаргалка</h1>
                         <p class="tagline">Изучаем SQL на простых примерах</p>
                     </div>
                 </div>
@@ -45,7 +45,7 @@
                         <circle cx="11" cy="11" r="8"></circle>
                         <path d="m21 21-4.35-4.35"></path>
                     </svg>
-                    <input type="text" id="searchInput" placeholder="Поиск..." aria-label="Поиск">
+                    <input type="text" id="searchInput" placeholder="Поиск по шпаргалке..." aria-label="Поиск">
                 </div>
                 <select id="levelFilter" class="level-filter" aria-label="Фильтр по уровню">
                     <option value="all">Все уровни</option>
